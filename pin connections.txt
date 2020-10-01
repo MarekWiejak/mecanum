@@ -1,0 +1,24 @@
+motor1:
+A - 14
+B - 15
+motor2:
+A - 17
+B - 16
+motor3:
+A - 19
+B - 18
+motor4:
+A - 20
+B - 21
+
+right H-bridge:
+IN1 - 6
+IN2 - 7
+IN3 - 9
+IN4 - 8
+
+left H-bridge:
+IN1 - 4
+IN2 - 5
+IN3 - 10
+IN4 - 11
