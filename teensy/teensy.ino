@@ -1,8 +1,8 @@
 #include <ros.h>
 #include <std_msgs/Bool.h>
-#include <astrocent/Vector4float.h>
-#include <astrocent/Vector4x2.h>
-#include <astrocent/Vector4int.h>
+#include <messages/Vector4float.h>
+#include <messages/Vector4x2.h>
+#include <messages/Vector4int.h>
 #include <Encoder.h>
 #include <PID_v1.h>
 
