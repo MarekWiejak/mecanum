@@ -1,13 +1,13 @@
 #include <ros.h>
-#include <astrocent/Rpm.h>
-#include <astrocent/RpmPwm.h>
-#include <astrocent/PIDsettings.h>
-#include <astrocent/ManualPWM.h>
+#include <std_msgs/Bool.h>
+#include <astrocent/Vector4float.h>
+#include <astrocent/Vector4x2.h>
+#include <astrocent/Vector4int.h>
 #include <Encoder.h>
 #include <PID_v1.h>
 
 ros::NodeHandle nh;
-astrocent::RpmPwm publishPVCV;
+astrocent::Vector4x2 publishPVCV;
 
 // define teeensy pins for motor control:
 // run - motor rotation causing robot to move forward
@@ -51,21 +51,21 @@ PID PID2(&PV2, &CV2, &SP2, Kp_2, Ki_2, Kd_2, DIRECT);
 PID PID3(&PV3, &CV3, &SP3, Kp_3, Ki_3, Kd_3, DIRECT);
 PID PID4(&PV4, &CV4, &SP4, Kp_4, Ki_4, Kd_4, DIRECT);
 
-void messageRPM(const astrocent::Rpm& rpmSP){
-  SP1 = rpmSP.rpm1;
-  SP2 = rpmSP.rpm2;
-  SP3 = rpmSP.rpm3;
-  SP4 = rpmSP.rpm4;
+void messageRPM(const astrocent::Vector4float& rpmSP){
+  SP1 = rpmSP.m1;
+  SP2 = rpmSP.m2;
+  SP3 = rpmSP.m3;
+  SP4 = rpmSP.m4;
 }
 
-void messageSettings(const astrocent::PIDsettings& settings){
-  if (settings.mode == 0){
+void messageSettings(const std_msgs::Bool& settings){
+  if (settings.data == 0){
     PID1.SetMode(MANUAL);
     PID2.SetMode(MANUAL);
     PID3.SetMode(MANUAL);
     PID4.SetMode(MANUAL);
   }
-  else if (settings.mode == 1){
+  else if (settings.data == 1){
     PID1.SetMode(AUTOMATIC);
     PID2.SetMode(AUTOMATIC);
     PID3.SetMode(AUTOMATIC);
@@ -73,22 +73,22 @@ void messageSettings(const astrocent::PIDsettings& settings){
   }
 }
 
-void messageManPWM(const astrocent::ManualPWM& manPWM){
+void messageManPWM(const astrocent::Vector4int& manPWM){
     digitalWrite(13, LOW);
   if (PID1.GetMode() == MANUAL)
-    CV1 = manPWM.pwm1;
+    CV1 = manPWM.m1;
   if (PID2.GetMode() == MANUAL)
-    CV2 = manPWM.pwm2;
+    CV2 = manPWM.m2;
   if (PID3.GetMode() == MANUAL)
-    CV3 = manPWM.pwm3;
+    CV3 = manPWM.m3;
   if (PID4.GetMode() == MANUAL)
-    CV4 = manPWM.pwm4;
+    CV4 = manPWM.m4;
 }
 
 ros::Publisher chatter("rpmPV", &publishPVCV);
-ros::Subscriber<astrocent::Rpm> sub_rpm("rpmSP", &messageRPM);
-ros::Subscriber<astrocent::PIDsettings> sub_PIDsettings("driverPIDsettings", &messageSettings);
-ros::Subscriber<astrocent::ManualPWM> sub_manPWM("manPWM", &messageManPWM);
+ros::Subscriber<astrocent::Vector4float> sub_rpm("rpmSP", &messageRPM);
+ros::Subscriber<std_msgs::Bool> sub_PIDsettings("driverPIDsettings", &messageSettings);
+ros::Subscriber<astrocent::Vector4int> sub_manPWM("manPWM", &messageManPWM);
 
 void setup() {
   pinMode(run1, OUTPUT);
@@ -127,8 +127,6 @@ digitalWrite(13, HIGH);
 }
 
 void loop() {
-
-  
     int count1=0, count2=0, count3=0, count4=0;
     count1 = encoder1.read();
       encoder1.write(0);
@@ -145,7 +143,11 @@ void loop() {
     PV4 = count4 / count2rpm;
 
     PID1.Compute();
-    if(CV1 > 0){
+    if ((PID1.GetMode() == AUTOMATIC && SP1 == 0 && abs(PV1) < 2.0) || (PID1.GetMode() == MANUAL && CV1 == 0)){
+      analogWrite(run1, 0);
+      analogWrite(reverse1, 0);
+    }
+    else if(CV1 > 0){
       analogWrite(run1, int(CV1) + thresh);
       analogWrite(reverse1, 0);
     }
@@ -153,13 +155,13 @@ void loop() {
       analogWrite(run1, 0);
       analogWrite(reverse1, int(-CV1) + thresh);
     }
-    else if(CV1 == 0){
-      analogWrite(run1, 0);
-      analogWrite(reverse1, 0);
-    }
 
     PID2.Compute();
-    if(CV2 > 0){
+    if ((PID2.GetMode() == AUTOMATIC && SP2 == 0 && abs(PV2) < 2.0) || (PID2.GetMode() == MANUAL && CV2 == 0)){
+      analogWrite(run2, 0);
+      analogWrite(reverse2, 0);
+    }
+    else if(CV2 > 0){
       analogWrite(run2, int(CV2) + thresh);
       analogWrite(reverse2, 0);
     }
@@ -167,13 +169,13 @@ void loop() {
       analogWrite(run2, 0);
       analogWrite(reverse2, int(-CV2) + thresh);
     }
-    else if(CV2 == 0){
-      analogWrite(run2, 0);
-      analogWrite(reverse2, 0);
-    }
     
     PID3.Compute();
-    if(CV3 > 0){
+    if ((PID3.GetMode() == AUTOMATIC && SP3 == 0 && abs(PV3) < 2.0) || (PID3.GetMode() == MANUAL && CV3 == 0)){
+      analogWrite(run3, 0);
+      analogWrite(reverse3, 0);
+    }
+    else if(CV3 > 0){
       analogWrite(run3, int(CV3) + thresh);
       analogWrite(reverse3, 0);
     }
@@ -181,13 +183,13 @@ void loop() {
       analogWrite(run3, 0);
       analogWrite(reverse3, int(-CV3) + thresh);
     }
-    else if(CV3 == 0){
-      analogWrite(run3, 0);
-      analogWrite(reverse3, 0);
-    }
-
+  
     PID4.Compute();
-    if(CV4 > 0){
+    if ((PID4.GetMode() == AUTOMATIC && SP4 == 0 && abs(PV4) < 2.0) || (PID4.GetMode() == MANUAL && CV4 == 0)){
+      analogWrite(run4, 0);
+      analogWrite(reverse4, 0);
+    }
+    else if(CV4 > 0){
       analogWrite(run4, int(CV4) + thresh);
       analogWrite(reverse4, 0);
     }
@@ -195,25 +197,21 @@ void loop() {
       analogWrite(run4, 0);
       analogWrite(reverse4, int(-CV4) + thresh);
     }
-    else if(CV4 == 0){
-      analogWrite(run4, 0);
-      analogWrite(reverse4, 0);
-    }
 
-    publishPVCV.rpm1 = PV1;
-    publishPVCV.rpm2 = PV2;
-    publishPVCV.rpm3 = PV3;
-    publishPVCV.rpm4 = PV4;
+    publishPVCV.rpm.m1 = PV1;
+    publishPVCV.rpm.m2 = PV2;
+    publishPVCV.rpm.m3 = PV3;
+    publishPVCV.rpm.m4 = PV4;
 
-    publishPVCV.pwm1 = CV1;
-    publishPVCV.pwm2 = CV2;
-    publishPVCV.pwm3 = CV3;
-    publishPVCV.pwm4 = CV4;
+    publishPVCV.pwm.m1 = CV1;
+    publishPVCV.pwm.m2 = CV2;
+    publishPVCV.pwm.m3 = CV3;
+    publishPVCV.pwm.m4 = CV4;
     
     chatter.publish( &publishPVCV );
     delay(interval);
 
-      digitalWrite(13, !digitalRead(13));
+    digitalWrite(13, !digitalRead(13));
     
     nh.spinOnce();
     
