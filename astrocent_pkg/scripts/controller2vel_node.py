@@ -2,21 +2,20 @@
 
 import rospy
 from geometry_msgs.msg import Twist
-from astrocent.msg import Main_vels
 
-control_vels = Main_vels()
-control_vels.vx = 0
-control_vels.vy = 0
-control_vels.rz = 0
-pub = rospy.Publisher('velSP', Main_vels, queue_size=1)
+control_vels = Twist()
+control_vels.linear.x = 0
+control_vels.linear.y = 0
+control_vels.angular.z = 0
+pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
 
 def write_x_y(data):
-    control_vels.vx = data.linear.x
-    control_vels.vy = data.linear.y
+    control_vels.linear.x = data.linear.x
+    control_vels.linear.y = data.linear.y
     pub.publish(control_vels)
 
 def write_z(data):
-    control_vels.rz = data.angular.z
+    control_vels.angular.z = data.angular.z
     pub.publish(control_vels)
 
 def controller2vel():
