@@ -1,13 +1,14 @@
 #include <ros.h>
-#include <std_msgs/Bool.h>
-#include <messages/Vector4float.h>
-#include <messages/Vector4x2.h>
-#include <messages/Vector4int.h>
 #include <Encoder.h>
 #include <PID_v1.h>
+#include <std_msgs/Bool.h>
+#include "src/messages/Vector4float.h"
+#include "src/messages/Vector4int.h"
 
 ros::NodeHandle nh;
-astrocent::Vector4x2 publishPVCV;
+astrocent::Vector4float publishPV;
+astrocent::Vector4int publishCV;
+
 
 // define teeensy pins for motor control:
 // run - motor rotation causing robot to move forward
@@ -85,10 +86,12 @@ void messageManPWM(const astrocent::Vector4int& manPWM){
     CV4 = manPWM.m4;
 }
 
-ros::Publisher chatter("rpmPV", &publishPVCV);
+ros::Publisher chatterPV("rpmPV", &publishPV);
+ros::Publisher chatterCV("pwmCV", &publishCV);
+
 ros::Subscriber<astrocent::Vector4float> sub_rpm("rpmSP", &messageRPM);
 ros::Subscriber<std_msgs::Bool> sub_PIDsettings("driverPIDsettings", &messageSettings);
-ros::Subscriber<astrocent::Vector4int> sub_manPWM("manPWM", &messageManPWM);
+ros::Subscriber<astrocent::Vector4int> sub_manPWM("manCV", &messageManPWM);
 
 void setup() {
   pinMode(run1, OUTPUT);
@@ -100,12 +103,12 @@ void setup() {
   pinMode(run4, OUTPUT);
     pinMode(reverse4, OUTPUT);
 
-pinMode(13, OUTPUT);
-digitalWrite(13, HIGH);
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
 
-  
   nh.initNode();
-  nh.advertise(chatter);
+  nh.advertise(chatterPV);
+  nh.advertise(chatterCV);
   nh.subscribe(sub_rpm);
   nh.subscribe(sub_PIDsettings);
   nh.subscribe(sub_manPWM);
@@ -198,17 +201,18 @@ void loop() {
       analogWrite(reverse4, int(-CV4) + thresh);
     }
 
-    publishPVCV.rpm.m1 = PV1;
-    publishPVCV.rpm.m2 = PV2;
-    publishPVCV.rpm.m3 = PV3;
-    publishPVCV.rpm.m4 = PV4;
+    publishPV.m1 = PV1;
+    publishPV.m2 = PV2;
+    publishPV.m3 = PV3;
+    publishPV.m4 = PV4;
 
-    publishPVCV.pwm.m1 = CV1;
-    publishPVCV.pwm.m2 = CV2;
-    publishPVCV.pwm.m3 = CV3;
-    publishPVCV.pwm.m4 = CV4;
+    publishCV.m1 = CV1;
+    publishCV.m2 = CV2;
+    publishCV.m3 = CV3;
+    publishCV.m4 = CV4;
     
-    chatter.publish( &publishPVCV );
+    chatterPV.publish( &publishPV );
+    chatterCV.publish( &publishCV );
     delay(interval);
 
     digitalWrite(13, !digitalRead(13));
