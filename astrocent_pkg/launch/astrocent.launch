@@ -2,6 +2,8 @@
 
     <node pkg="astrocent" name="controller2vel" type="controller2vel_node.py"/>
     <node pkg="astrocent" name="vel2rpm" type="vel2rpm_node.py"/>
+    <node pkg="astrocent" name="rpm2vel" type="rpm2vel_node.py"/>
+    <node pkg="astrocent" name="odometry_node" type="odometry_node"/>
     <node pkg="rosserial_python" name="serial_node" type="serial_node.py" args="/dev/ttyACM0"/>
 
-</launch>   
+</launch> 
