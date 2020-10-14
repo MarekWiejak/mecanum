@@ -11,7 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
+  nav_msgs
   message_generation
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,11 +53,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
    FILES
-   Rpm.msg
-   RpmPwm.msg
-   PIDsettings.msg
-   ManualPWM.msg
-   Main_vels.msg
+   Vector4int.msg
+   Vector4float.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -107,10 +107,10 @@ add_message_files(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES astrocent
-   CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+#   INCLUDE_DIRS include
+#   LIBRARIES ${PROJECT_NAME}
+   CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs nav_msgs
+#   DEPENDS system_lib
 )
 
 ###########
@@ -124,9 +124,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a C++ library
+# Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/astrocent.cpp
+#   src/${PROJECT_NAME}/odometry.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -137,7 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/astrocent_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/@{name}_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,6 +154,12 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(odometry_node src/odometry.cpp)
+target_link_libraries(odometry_node ${catkin_LIBRARIES} )
+add_dependencies(odometry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
+
 #############
 ## Install ##
 #############
@@ -165,6 +171,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
   catkin_install_python(PROGRAMS
     scripts/vel2rpm_node.py
+    scripts/rpm2vel_node.py
     scripts/controller2vel_node.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
