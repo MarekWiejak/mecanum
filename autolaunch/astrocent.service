@@ -1,0 +1,10 @@
+[Unit]
+Description=astrocent
+
+[Service]
+Type=simple
+ExecStart=/home/pi/scripts/startup_launch.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
