@@ -2,6 +2,7 @@
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
 
 class Odometer
 {
@@ -15,6 +16,7 @@ class Odometer
 
     public:
     ros::Publisher odom_pub;
+    ros::Publisher my_odom;
 
     Odometer(){
         double x = 0.0;
@@ -28,8 +30,8 @@ class Odometer
         this->current_time = ros::Time::now();
 
         double dt = (current_time - last_time).toSec();
-        double delta_x = (msg.linear.x * cos(msg.angular.z) - msg.linear.y * sin(msg.angular.z)) * dt;
-        double delta_y = (msg.linear.x * sin(msg.angular.z) + msg.linear.y * cos(msg.angular.z)) * dt;
+        double delta_x = (msg.linear.x * cos(th) - msg.linear.y * sin(th)) * dt;
+        double delta_y = (msg.linear.x * sin(th) + msg.linear.y * cos(th)) * dt;
         double delta_th = msg.angular.z * dt;
 
         x += delta_x;
@@ -49,6 +51,14 @@ class Odometer
         odom_trans.transform.rotation = odom_quat;
         
         odom_broadcaster.sendTransform(odom_trans);
+
+
+        geometry_msgs::Vector3 position;
+        position.x = x;
+        position.y = y;
+        position.z = th;
+        my_odom.publish(position);
+        
 
         nav_msgs::Odometry odom;
         odom.header.stamp = current_time;
@@ -70,6 +80,7 @@ int main(int argc, char** argv){
     ros::NodeHandle n;
     Odometer odometer;
     odometer.odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
+    odometer.my_odom = n.advertise<geometry_msgs::Vector3>("my_odom", 50);
     ros::Subscriber vel_sub = n.subscribe("velPV", 1000, &Odometer::callback, &odometer);
     
     ros::spin();
