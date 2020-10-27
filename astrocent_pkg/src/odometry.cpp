@@ -1,41 +1,88 @@
-#!/usr/bin/env python
+#include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
+#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
 
-import rospy
-import numpy as np
-from std_msgs.msg import String
-from astrocent.msg import Vector4float
-from geometry_msgs.msg import Twist
-from math import pi as pi
+class Odometer
+{
+    private:
+    ros::Time current_time;
+    ros::Time last_time;
+    double x;
+    double y;
+    double th;
+    tf::TransformBroadcaster odom_broadcaster;
 
-zc = 1.15785 # rotation correction coefficient
-xc = 1.13603
-yc = 1.29671
+    public:
+    ros::Publisher odom_pub;
+    ros::Publisher my_odom;
 
-wheel_r = 39
-x = 1 / xc
-y = 1 / yc
-l = 180 * zc # (half length + half width of the platform)
-message = Twist()
+    Odometer(){
+        double x = 0.0;
+        double y = 0.0;
+        double th = 0.0;
+        current_time = ros::Time::now();
+        last_time = ros::Time::now();
+    }
 
-rpm2vel_matrix = np.array([[x,-y,1/l],[x,y,-1/l],[x,-y,-1/l],[x,y,1/l]]) / 60 * (2*pi) * wheel_r/4
+    void callback(const geometry_msgs::Twist& msg){
+        this->current_time = ros::Time::now();
 
-pub = rospy.Publisher('velPV', Twist, queue_size=10)
+        double dt = (current_time - last_time).toSec();
+        double delta_x = (msg.linear.x * cos(th) - msg.linear.y * sin(th)) * dt;
+        double delta_y = (msg.linear.x * sin(th) + msg.linear.y * cos(th)) * dt;
+        double delta_th = msg.angular.z * dt;
 
-def callback(data):
-    read_rpm = [data.m1, data.m2, data.m3, data.m4]
-    vels_2b_published = np.matmul(read_rpm, rpm2vel_matrix)
-    message.linear.x = vels_2b_published[0]
-    message.linear.y = vels_2b_published[1]
-    message.angular.z = vels_2b_published[2]
-    pub.publish(message)
+        x += delta_x;
+        y += delta_y;
+        th += delta_th;
 
-def rpm2vel():
-    rospy.init_node("rpm2vel")
-    rospy.Subscriber('rpmPV', Vector4float, callback)
-    rospy.spin()
+        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
 
-if __name__ == '__main__':
-    try:
-        rpm2vel()
-    except rospy.ROSInterruptException:
-        pass
+        geometry_msgs::TransformStamped odom_trans;
+        odom_trans.header.stamp = current_time;
+        odom_trans.header.frame_id = "odom";
+        odom_trans.child_frame_id = "base_link";
+
+        odom_trans.transform.translation.x = x;
+        odom_trans.transform.translation.y = y;
+        odom_trans.transform.translation.z = 0.0;
+        odom_trans.transform.rotation = odom_quat;
+        
+        odom_broadcaster.sendTransform(odom_trans);
+
+
+        geometry_msgs::Vector3 position;
+        position.x = x;
+        position.y = y;
+        position.z = th;
+        my_odom.publish(position);
+        
+
+        nav_msgs::Odometry odom;
+        odom.header.stamp = current_time;
+        odom.header.frame_id = "odom";
+
+        odom.pose.pose.position.x = x;
+        odom.pose.pose.position.y = y;
+        odom.pose.pose.position.z = 0.0;
+        odom.pose.pose.orientation = odom_quat;
+
+        odom_pub.publish(odom);
+
+        last_time = current_time;
+    }
+};
+
+int main(int argc, char** argv){
+    ros::init(argc, argv, "odometry_publisher");
+    ros::NodeHandle n;
+    Odometer odometer;
+    odometer.odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
+    odometer.my_odom = n.advertise<geometry_msgs::Vector3>("my_odom", 50);
+    ros::Subscriber vel_sub = n.subscribe("velPV", 1000, &Odometer::callback, &odometer);
+    
+    ros::spin();
+    return 0;
+}
