@@ -6,16 +6,22 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from astrocent.msg import Vector4float
 from math import pi as pi
- 
+
+zc = 1.15785 # rotation correction coefficient
+xc = 1.13603
+yc = 1.29671
+
 max_rpm = 135
 max_omega = max_rpm * 2 * pi /60
 wheel_r = 39
-l = 180 # (half length + half width of the platform)
+x = xc
+y = yc
+l = 180 * zc # (half length + half width of the platform)
 v_max = wheel_r * max_omega # v_max in mm/s
 rotation_max = wheel_r / l * max_omega # in rotations per second
 message = Vector4float()
 
-vel2rpm_matrix = np.array([[1,1,1,1],[-1,1,-1,1],[l,-l,-l,l]]) * 60 / (2*pi) / wheel_r 
+vel2rpm_matrix = np.array([[x,x,x,x],[-y,y,-y,y],[l,-l,-l,l]]) * 60 / (2*pi) / wheel_r 
 
 pub = rospy.Publisher('rpmSP', Vector4float, queue_size=1)
 
