@@ -3,6 +3,7 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
+#include <astrocent/SetOdometry.h>
 
 class Odometer
 {
@@ -73,6 +74,13 @@ class Odometer
 
         last_time = current_time;
     }
+
+    bool set_odometry(astrocent::SetOdometry::Request &req, astrocent::SetOdometry::Response &res){
+        x = req.x;
+        y = req.y;
+        th = req.z;
+        return true;
+    }
 };
 
 int main(int argc, char** argv){
@@ -82,6 +90,7 @@ int main(int argc, char** argv){
     odometer.odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
     odometer.my_odom = n.advertise<geometry_msgs::Vector3>("my_odom", 50);
     ros::Subscriber vel_sub = n.subscribe("velPV", 1000, &Odometer::callback, &odometer);
+    ros::ServiceServer service = n.advertiseService("set_odometry", &Odometer::set_odometry, &odometer);
     
     ros::spin();
     return 0;
