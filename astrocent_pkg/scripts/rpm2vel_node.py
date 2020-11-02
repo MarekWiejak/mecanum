@@ -8,8 +8,8 @@ from geometry_msgs.msg import Twist
 from math import pi as pi
 
 zc = 1.15785 # rotation correction coefficient
-xc = 1.13603
-yc = 1.29671
+xc = 1.11924
+yc = 0.80056
 
 wheel_r = 39
 x = 1 / xc

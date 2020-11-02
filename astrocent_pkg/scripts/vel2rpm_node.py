@@ -8,8 +8,8 @@ from astrocent.msg import Vector4float
 from math import pi as pi
 
 zc = 1.15785 # rotation correction coefficient
-xc = 1.13603
-yc = 1.29671
+xc = 1.11924
+yc = 0.80056
 
 max_rpm = 135
 max_omega = max_rpm * 2 * pi /60
