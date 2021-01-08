@@ -1,9 +1,11 @@
 <launch>
-
     <node pkg="astrocent" name="controller2vel" type="controller2vel_node.py"/>
     <node pkg="astrocent" name="vel2rpm" type="vel2rpm_node.py"/>
     <node pkg="astrocent" name="rpm2vel" type="rpm2vel_node.py"/>
     <node pkg="astrocent" name="odometry_node" type="odometry_node"/>
     <node pkg="rosserial_python" name="serial_node" type="serial_node.py" args="/dev/ttyACM0"/>
+    <node pkg="tf" name="laser_transform" type="static_transform_publisher" args="-0.013 0 0 0 0 1 0 robot_frame laser 25"/>
 
+    <include file="$(find rplidar_ros)/launch/rplidar.launch" />
 </launch> 
+        

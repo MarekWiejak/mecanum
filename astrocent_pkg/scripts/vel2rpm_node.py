@@ -9,7 +9,7 @@ from math import pi as pi
 
 zc = 1.15785 # rotation correction coefficient
 xc = 1.11924
-yc = 0.80056
+yc = 1.18122
 
 max_rpm = 135
 max_omega = max_rpm * 2 * pi /60
@@ -21,7 +21,7 @@ v_max = wheel_r * max_omega # v_max in mm/s
 rotation_max = wheel_r / l * max_omega # in rotations per second
 message = Vector4float()
 
-vel2rpm_matrix = np.array([[x,x,x,x],[-y,y,-y,y],[l,-l,-l,l]]) * 60 / (2*pi) / wheel_r 
+vel2rpm_matrix = np.array([[x,x,x,x],[y,-y,y,-y],[l,-l,-l,l]]) * 60 / (2*pi) / wheel_r 
 
 pub = rospy.Publisher('rpmSP', Vector4float, queue_size=1)
 

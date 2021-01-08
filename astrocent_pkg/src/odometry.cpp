@@ -31,8 +31,8 @@ class Odometer
         this->current_time = ros::Time::now();
 
         double dt = (current_time - last_time).toSec();
-        double delta_x = (msg.linear.x * cos(th) - msg.linear.y * sin(th)) * dt;
-        double delta_y = (msg.linear.x * sin(th) + msg.linear.y * cos(th)) * dt;
+        double delta_x = (msg.linear.x * cos(th) - msg.linear.y * sin(th)) * dt / 1000;
+        double delta_y = (msg.linear.x * sin(th) + msg.linear.y * cos(th)) * dt / 1000;
         double delta_th = msg.angular.z * dt;
 
         x += delta_x;
@@ -43,8 +43,8 @@ class Odometer
 
         geometry_msgs::TransformStamped odom_trans;
         odom_trans.header.stamp = current_time;
-        odom_trans.header.frame_id = "odom";
-        odom_trans.child_frame_id = "base_link";
+        odom_trans.header.frame_id = "odom_frame";
+        odom_trans.child_frame_id = "robot_frame";
 
         odom_trans.transform.translation.x = x;
         odom_trans.transform.translation.y = y;
@@ -63,7 +63,7 @@ class Odometer
 
         nav_msgs::Odometry odom;
         odom.header.stamp = current_time;
-        odom.header.frame_id = "odom";
+        odom.header.frame_id = "odom_frame";
 
         odom.pose.pose.position.x = x;
         odom.pose.pose.position.y = y;

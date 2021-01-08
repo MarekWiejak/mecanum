@@ -9,7 +9,7 @@ from math import pi as pi
 
 zc = 1.15785 # rotation correction coefficient
 xc = 1.11924
-yc = 0.80056
+yc = 1.18122
 
 wheel_r = 39
 x = 1 / xc
@@ -17,7 +17,7 @@ y = 1 / yc
 l = 180 * zc # (half length + half width of the platform)
 message = Twist()
 
-rpm2vel_matrix = np.array([[x,-y,1/l],[x,y,-1/l],[x,-y,-1/l],[x,y,1/l]]) / 60 * (2*pi) * wheel_r/4
+rpm2vel_matrix = np.array([[x,y,1/l],[x,-y,-1/l],[x,y,-1/l],[x,-y,1/l]]) / 60 * (2*pi) * wheel_r/4
 
 pub = rospy.Publisher('velPV', Twist, queue_size=10)
 
