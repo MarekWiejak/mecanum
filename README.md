@@ -1,6 +1,7 @@
 # Folders content
 - teensy - contains code running on Teensy 4.0 platform
 - astrocent_pkg - a ROS package, place it at ~/catkin_ws/src/
+- autolaunch - a script for automatic roslaunch on reboot
 
 # UPackages used for navigation
 - rplidar   http://wiki.ros.org/rplidar
