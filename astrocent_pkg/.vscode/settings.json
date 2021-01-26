@@ -1,0 +1,15 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/marek/caktin_ws/devel_isolated/rosserial_xbee/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_vex_v5/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_vex_cortex/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_python/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_client/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_msgs/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_mbed/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/rosserial_arduino/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/begginer_tutorials/lib/python3/dist-packages",
+        "/home/marek/caktin_ws/devel_isolated/astrocent/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ]
+}

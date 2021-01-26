@@ -14,12 +14,13 @@ yc = 1.18122
 max_rpm = 135
 max_omega = max_rpm * 2 * pi /60
 wheel_r = 39
-x = xc
-y = yc
+x = xc * 1000
+y = yc * 1000
 l = 180 * zc # (half length + half width of the platform)
 v_max = wheel_r * max_omega # v_max in mm/s
 rotation_max = wheel_r / l * max_omega # in rotations per second
 message = Vector4float()
+last_cmd_time = rospy.Time()
 
 vel2rpm_matrix = np.array([[x,x,x,x],[y,-y,y,-y],[l,-l,-l,l]]) * 60 / (2*pi) / wheel_r 
 
@@ -35,15 +36,27 @@ def check_limit(rpm_values):
 def callback(data):
     set_vels = [data.linear.x, data.linear.y, data.angular.z]
     rpms_2b_published = np.matmul(set_vels,vel2rpm_matrix)
-    rpms_2b_published = check_limit(rpms_2b_published)
+    # rpms_2b_published = check_limit(rpms_2b_published)
+    last_cmd_time.secs = rospy.get_rostime().secs
     message.m1 = rpms_2b_published[0]
     message.m2 = rpms_2b_published[1]
     message.m3 = rpms_2b_published[2]
     message.m4 = rpms_2b_published[3]
     pub.publish(message)
 
+def connection_control(event):
+    if ((event.current_real.secs - last_cmd_time.secs) >= 2):
+        message.m1 = 0.0
+        message.m2 = 0.0
+        message.m3 = 0.0
+        message.m4 = 0.0
+        pub.publish(message)
+
+
 def vel2rpm():
     rospy.init_node('vel2rpm')
+    last_cmd_time = rospy.Time.now()
+    rospy.Timer(rospy.Duration(1), connection_control)
     rospy.Subscriber('cmd_vel', Twist, callback)
     rospy.spin()
 
