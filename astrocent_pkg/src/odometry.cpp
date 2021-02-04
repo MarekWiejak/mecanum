@@ -31,8 +31,8 @@ class Odometer
         this->current_time = ros::Time::now();
 
         double dt = (current_time - last_time).toSec();
-        double delta_x = (msg.linear.x * cos(th) - msg.linear.y * sin(th)) * dt / 1000;
-        double delta_y = (msg.linear.x * sin(th) + msg.linear.y * cos(th)) * dt / 1000;
+        double delta_x = (msg.linear.x * cos(th) - msg.linear.y * sin(th)) * dt;
+        double delta_y = (msg.linear.x * sin(th) + msg.linear.y * cos(th)) * dt;
         double delta_th = msg.angular.z * dt;
 
         x += delta_x;
@@ -53,25 +53,6 @@ class Odometer
         
         odom_broadcaster.sendTransform(odom_trans);
 
-
-        geometry_msgs::Vector3 position;
-        position.x = x;
-        position.y = y;
-        position.z = th;
-        my_odom.publish(position);
-        
-
-        nav_msgs::Odometry odom;
-        odom.header.stamp = current_time;
-        odom.header.frame_id = "odom_frame";
-
-        odom.pose.pose.position.x = x;
-        odom.pose.pose.position.y = y;
-        odom.pose.pose.position.z = 0.0;
-        odom.pose.pose.orientation = odom_quat;
-
-        odom_pub.publish(odom);
-
         last_time = current_time;
     }
 
@@ -87,9 +68,7 @@ int main(int argc, char** argv){
     ros::init(argc, argv, "odometry_publisher");
     ros::NodeHandle n;
     Odometer odometer;
-    odometer.odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
-    odometer.my_odom = n.advertise<geometry_msgs::Vector3>("my_odom", 50);
-    ros::Subscriber vel_sub = n.subscribe("velPV", 1000, &Odometer::callback, &odometer);
+    ros::Subscriber vel_sub = n.subscribe("measured_vel", 1000, &Odometer::callback, &odometer);
     ros::ServiceServer service = n.advertiseService("set_odometry", &Odometer::set_odometry, &odometer);
     
     ros::spin();
