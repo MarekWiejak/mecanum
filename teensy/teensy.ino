@@ -4,11 +4,10 @@
 #include <std_msgs/Bool.h>
 #include "src/messages/Vector4float.h"
 #include "src/messages/Vector4int.h"
+#include <geometry_msgs/Twist.h>
 
 ros::NodeHandle nh;
-astrocent::Vector4float publishPV;
-astrocent::Vector4int publishCV;
-
+geometry_msgs::Twist measured_vel;
 
 // define teeensy pins for motor control:
 // run - motor rotation causing robot to move forward
@@ -26,10 +25,13 @@ const int run4 = 4, reverse4 = 5;
   const int encoder4Pin1 = 20, encoder4Pin2 = 21;
 
 const int pulses_per_rotation = 4 * 56 * 11; // 4 * reduction ratio * number of pusles on each sensor per rotation
-const long interval = 25; //main loop interval
+const long interv = 50; //main loop interv
 const float st = 0.5; //settling time (control algorithm)
 const int thresh = 30; // threshold of pwm value for motor to start turning
-const double count2rpm = interval*pulses_per_rotation/60/1000;
+const double count2rpm = interv*pulses_per_rotation/60/1000;
+
+unsigned long last_cmd_time;
+unsigned long schedule_time;
 
 Encoder encoder1(encoder1Pin1, encoder1Pin2);
 Encoder encoder2(encoder2Pin1, encoder2Pin2);
@@ -37,10 +39,11 @@ Encoder encoder3(encoder3Pin1, encoder3Pin2);
 Encoder encoder4(encoder4Pin1, encoder4Pin2);
 
 // PID settings
-const double Kp_1 = 1.039/st, Ki_1 = Kp_1/0.2, Kd_1 = 0;
-const double Kp_2 = 0.988/st, Ki_2 = Kp_2/0.2, Kd_2 = 0;
-const double Kp_3 = 1.233/st, Ki_3 = Kp_3/0.18, Kd_3 = 0;
-const double Kp_4 = 1.041/st, Ki_4 = Kp_4/0.19, Kd_4 = 0;
+const double Kp_def = 0.685/st, Ki_def = Kp_def/0.125, Kd_def = 0;
+const double Kp_1 = Kp_def, Ki_1 = Ki_def, Kd_1 = 0;
+const double Kp_2 = Kp_def, Ki_2 = Ki_def, Kd_2 = 0;
+const double Kp_3 = Kp_def, Ki_3 = Ki_def, Kd_3 = 0;
+const double Kp_4 = Kp_def, Ki_4 = Ki_def, Kd_4 = 0;
 
 double CV1 = 0, CV2 = 0, CV3 = 0, CV4 = 0;
 double PV1 = 0, PV2 = 0, PV3 = 0, PV4 = 0;
@@ -52,46 +55,20 @@ PID PID2(&PV2, &CV2, &SP2, Kp_2, Ki_2, Kd_2, DIRECT);
 PID PID3(&PV3, &CV3, &SP3, Kp_3, Ki_3, Kd_3, DIRECT);
 PID PID4(&PV4, &CV4, &SP4, Kp_4, Ki_4, Kd_4, DIRECT);
 
-void messageRPM(const astrocent::Vector4float& rpmSP){
-  SP1 = rpmSP.m1;
-  SP2 = rpmSP.m2;
-  SP3 = rpmSP.m3;
-  SP4 = rpmSP.m4;
+
+
+void callback_cmd_vel(const geometry_msgs::Twist& vel){
+  vel_2_rpm(vel);
+  last_cmd_time = millis();
 }
 
-void messageSettings(const std_msgs::Bool& settings){
-  if (settings.data == 0){
-    PID1.SetMode(MANUAL);
-    PID2.SetMode(MANUAL);
-    PID3.SetMode(MANUAL);
-    PID4.SetMode(MANUAL);
-  }
-  else if (settings.data == 1){
-    PID1.SetMode(AUTOMATIC);
-    PID2.SetMode(AUTOMATIC);
-    PID3.SetMode(AUTOMATIC);
-    PID4.SetMode(AUTOMATIC);
-  }
-}
+//void check_connection(const ros::TimeEvent& event){
+//  
+//}
 
-void messageManPWM(const astrocent::Vector4int& manPWM){
-    digitalWrite(13, LOW);
-  if (PID1.GetMode() == MANUAL)
-    CV1 = manPWM.m1;
-  if (PID2.GetMode() == MANUAL)
-    CV2 = manPWM.m2;
-  if (PID3.GetMode() == MANUAL)
-    CV3 = manPWM.m3;
-  if (PID4.GetMode() == MANUAL)
-    CV4 = manPWM.m4;
-}
+ros::Publisher chatter_vel("measured_vel", &measured_vel);
+ros::Subscriber<geometry_msgs::Twist> vel_SP("cmd_vel", &callback_cmd_vel);
 
-ros::Publisher chatterPV("rpmPV", &publishPV);
-ros::Publisher chatterCV("pwmCV", &publishCV);
-
-ros::Subscriber<astrocent::Vector4float> sub_rpm("rpmSP", &messageRPM);
-ros::Subscriber<std_msgs::Bool> sub_PIDsettings("driverPIDsettings", &messageSettings);
-ros::Subscriber<astrocent::Vector4int> sub_manPWM("manCV", &messageManPWM);
 
 void setup() {
   pinMode(run1, OUTPUT);
@@ -107,16 +84,14 @@ void setup() {
   digitalWrite(13, HIGH);
 
   nh.initNode();
-  nh.advertise(chatterPV);
-  nh.advertise(chatterCV);
-  nh.subscribe(sub_rpm);
-  nh.subscribe(sub_PIDsettings);
-  nh.subscribe(sub_manPWM);
+  nh.advertise(chatter_vel);
+  nh.subscribe(vel_SP);
+//  nh.createTimer
 
-  PID1.SetSampleTime(interval);
-  PID2.SetSampleTime(interval);
-  PID3.SetSampleTime(interval);
-  PID4.SetSampleTime(interval);
+  PID1.SetSampleTime(interv);
+  PID2.SetSampleTime(interv);
+  PID3.SetSampleTime(interv);
+  PID4.SetSampleTime(interv);
 
   PID1.SetOutputLimits(-255 + thresh, 255 - thresh);
   PID2.SetOutputLimits(-255 + thresh, 255 - thresh);
@@ -127,6 +102,8 @@ void setup() {
   PID2.SetMode(AUTOMATIC);
   PID3.SetMode(AUTOMATIC);
   PID4.SetMode(AUTOMATIC);
+
+  schedule_time = millis();
 }
 
 void loop() {
@@ -200,22 +177,19 @@ void loop() {
       analogWrite(run4, 0);
       analogWrite(reverse4, int(-CV4) + thresh);
     }
+    measured_vel = rpm_2_vel(PV1, PV2, PV3, PV4);
+    chatter_vel.publish( &measured_vel );
 
-    publishPV.m1 = PV1;
-    publishPV.m2 = PV2;
-    publishPV.m3 = PV3;
-    publishPV.m4 = PV4;
-
-    publishCV.m1 = CV1;
-    publishCV.m2 = CV2;
-    publishCV.m3 = CV3;
-    publishCV.m4 = CV4;
-    
-    chatterPV.publish( &publishPV );
-    chatterCV.publish( &publishCV );
-    delay(interval);
+    delay(interv);
 
     digitalWrite(13, !digitalRead(13));
+
+    check_connection();
+
+    while(millis() < schedule_time){
+      ;
+    }
+    schedule_time += interv;
     
     nh.spinOnce();
     
