@@ -60,6 +60,7 @@ If you recommended aliases from autolaunch/aliases.txt are used:
 - run "rospi" to export ROS_IP 
 - run "am" for localization, NOTE: currently map file path is hardcoded in astrocent_pkg/launch/amcl.launch file and code must be changed in order to use chosen map.
 - run "mb" to start navigation (also need to code map file path)
+- run "re" to record a rosbag file
 To use localization and navigation rviz can be used.
 
 
