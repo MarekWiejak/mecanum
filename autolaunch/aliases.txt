@@ -1,7 +1,0 @@
-alias rs="source ~/catkin_ws/devel/setup.bash"
-alias sm="rosrun map_server map_saver -f ~/maps/`echo`map-"`date +"%FT%T"`""
-alias re="rosbag record -o ~/bags /scan /tf"
-alias gm="roslaunch astrocent gmapping.launch"
-alias am="roslaunch astrocent amcl.launch"
-alias mb="roslaunch astrocent move_base.launch"
-alias rosip="export ROS_IP=mwraspi.local"
