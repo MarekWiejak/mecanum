@@ -169,8 +169,6 @@ add_dependencies(odometry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
   catkin_install_python(PROGRAMS
-    scripts/vel2rpm_node.py
-    scripts/rpm2vel_node.py
     scripts/controller2vel_node.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
