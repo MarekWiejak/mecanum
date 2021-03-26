@@ -4,8 +4,9 @@
 - Teensy 4.0
 - RPLidar A2
 - Mecanum wheels platform with engines with rotation speed sensors
-- pwm/voltage converter (x4)
-- 12V and 5V power source
+- pwm/voltage converter (x4 channels) [e.g. x2 L298N module from thi source: https://sklep.avt.pl/modul-sterownik-silnika-krokowego-l298n.html ]
+- 12V and 5V power source [e.g an unit from this source: https://sklep.avt.pl/przetwornica-step-down-9-38v-na-5v-usb-5a-duza-wydajnosc.html ]
+[parameters of both proposed units are excessive and allow much higher pelectric load]
 
 ## Setup description
 Raspberry is powered by 5V source via USB C cable. Teensy is powered and connected to Raspberry with USB / microUSB cable. Lidar is powered and connected to Raspberry with USB / microUSB cable. Converters are connected to Teensy pins with signal cables (detailed description below), converters are powered by 12V power cables. Engines are connected to converters with power cables. Sensors on engines are connected to Teensy pins with signal cables, addionally, they are powered with 5V (also thorough Teensy).
@@ -48,6 +49,13 @@ launch files:
 ### Autolaunch
 Autolaunch folder contains script that will cause ROS software to launch on boot. The setup instruction can be found in /autolaunch/README.txt file.
 Also, a set of convinient aliases that can be added to ~/.bashrc can be found in the folder.
+
+# How to install the package
+1. install ROS e.g. https://varhowto.com/install-ros-noetic-raspberry-pi-4/
+2. copy astrocent_pkg to workspace source folder e.g ~/catkin_ws/src
+3. run 'rs' command`
+4. go to workspace folder e.g. ~/catkin_ws
+5. run 'catkin_make' command
 
 # How to contol robot
 ## Manual control
