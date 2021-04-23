@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="tic_crane" type="server_node" respawn="false" name="tic_server_node" output="screen">
+        <rosparam file="$(find tic_crane)/config/tic_crane_params.yaml" command="load"/>
+    </node>
+    <node pkg="tic_crane"  type="state_machine.py" respawn="false" name="crane_state_machine"/>
+</launch>

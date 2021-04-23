@@ -1,0 +1,6 @@
+# in steps, 200 steps per one turn
+stored_position: 0
+deployed_position: 300
+
+# in steps per second
+rotation_speed: 200
