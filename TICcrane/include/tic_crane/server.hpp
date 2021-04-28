@@ -3,7 +3,6 @@
 #include <tic.hpp>
 #include <actionlib/server/simple_action_server.h>
 
-#include <tic_crane/setTargetPose.h>
 #include <tic_crane/MoveToPositionAction.h>
 #include <tic_crane/MeasurementAction.h>
 
