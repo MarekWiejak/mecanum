@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include "../include/tic_crane/server.hpp"
-#include <tic_crane/setTargetPose.h>
 #include <tic_crane/MoveToPositionAction.h>
 #include <tic_crane/MeasurementAction.h>
 
